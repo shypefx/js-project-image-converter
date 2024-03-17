@@ -9,6 +9,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dialect": "mysql",
+"dialectOptions": {
+  "socketPath": "/cloudsql/your-project-id:region:instance-id"
+},
+
   "proxy": {
     "target": "http://localhost:5000",
     "proxyTimeout": 600000
