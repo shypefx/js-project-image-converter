@@ -8,6 +8,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const sharp = require('sharp');
 //
 const bodyParser = require('body-parser');
 const sequelizeConfig = require('./sequelize.config');
@@ -54,7 +55,7 @@ sequelize.sync({ force: false })
     jwt.verify(token, secretKey, (err, decoded) => {
       if (err) {
         console.error('Error verifying token:', err);
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'Unauthorized'});
       }
       req.user = decoded;
       next();
@@ -83,8 +84,11 @@ app.get('/api/users', async (req, res) => {
 
 app.post('/api/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { firstname, name, email, password } = req.body;
+    console.log("API SIGNUP")
+    console.log(req.body)
     const newUser = await User.create({
+      firstname,
       name,
       email,
       password,
@@ -99,9 +103,9 @@ app.post('/api/signup', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
   try {
+    console.log("API LOGIN")
     const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
-
+    const user = await User.findOne({ where: { email } }); // Update table name here
     if (user && user.password === password) {
       const token = generateAuthToken(user); // Generate a new token
       console.log('Generated Token:', token);
@@ -116,39 +120,47 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-
-
 app.post('/api/convert', authenticateUser, upload.single('image'), async (req, res) => {
   try {
     const userId = req.user.id;
     const conversionType = req.body.conversionType;
     const imageBuffer = req.file.buffer;
 
-    // Load image using image-js
-    const image = await Image.load(imageBuffer);
-
-    // Perform image conversion
-    const convertedImage = await image.toFormat(conversionType);
+    // Perform image conversion using sharp
+    const convertedImageBuffer = await sharp(imageBuffer)
+      .toFormat(conversionType)
+      .toBuffer();
 
     // Save the converted image to the server's file system
     const imageName = `converted_${Date.now()}.${conversionType}`;
-    const imagePath = path.join(__dirname, 'public', 'converted-images', imageName);
-    await fs.writeFile(imagePath, convertedImage.toBuffer());
+    const imagePath = path.join(__dirname, 'converted-images', imageName);
 
-    // Save conversion record to the database
-    const imageUrl = `/converted-images/${imageName}`;
-    const conversionRecord = await ConversionHistory.create({
-      imageUrl,
-      conversionType,
-      userId,
+    // Use fs.writeFile with a callback function
+    fs.writeFile(imagePath, convertedImageBuffer, (err) => {
+      if (err) {
+        console.error('Error writing file:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+        // Save conversion record to the database
+        const imageUrl = `/converted-images/${imageName}`;
+        ConversionHistory.create({
+          imageUrl,
+          conversionType,
+          userId,
+        }).then((conversionRecord) => {
+          res.json({ message: 'Image converted and history recorded successfully', conversionRecord });
+        }).catch((error) => {
+          console.error('Error saving conversion record:', error);
+          res.status(500).json({ error: 'Internal Server Error' });
+        });
+      }
     });
-
-    res.json({ message: 'Image converted and history recorded successfully', conversionRecord });
   } catch (error) {
     console.error('Error during image conversion and history recording:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 app.listen(PORT, () => {

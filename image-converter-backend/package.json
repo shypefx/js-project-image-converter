@@ -10,10 +10,9 @@
   "author": "",
   "license": "ISC",
   "dialect": "mysql",
-"dialectOptions": {
-  "socketPath": "/cloudsql/your-project-id:region:instance-id"
-},
-
+  "dialectOptions": {
+    "socketPath": "/cloudsql/your-project-id:region:instance-id"
+  },
   "proxy": {
     "target": "http://localhost:5000",
     "proxyTimeout": 600000
@@ -26,6 +25,7 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.9.2",
     "pg": "^8.11.3",
-    "sequelize": "^6.37.1"
+    "sequelize": "^6.37.1",
+    "sharp": "^0.33.2"
   }
 }
