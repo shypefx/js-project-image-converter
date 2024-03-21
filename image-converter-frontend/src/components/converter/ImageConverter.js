@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { Button, Container, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
+import App from '../../App';
+import AppAppBar from '../navbar/AppAppBar';
 
 const ImageConverter = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -26,7 +29,7 @@ const ImageConverter = () => {
 
     try {
       const authToken = localStorage.getItem('token'); // Retrieve the token from localStorage
-      const response = await fetch('/api/convert', {
+      const response = await fetch('http://localhost:5000/api/convert', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -54,25 +57,35 @@ const ImageConverter = () => {
   };
 
   return (
-    <div>
-      <h2>Image Converter</h2>
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <AppAppBar />
+      <Typography sx={{ pb: 20 }}></Typography>
+      <Typography variant="h4" align="center" gutterBottom>Image Converter</Typography>
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="image">Choose an image:</label>
-          <input type="file" id="image" accept="image/*" onChange={handleImageChange} />
+          <FormControl sx={{ pb: 2 }} fullWidth>
+            <input type="file" id="image" accept="image/*" onChange={handleImageChange} />
+          </FormControl>
         </div>
         <div>
-          <label htmlFor="conversionType">Choose conversion type:</label>
-          <select id="conversionType" value={conversionType} onChange={handleConversionTypeChange}>
-            <option value="png">PNG</option>
-            <option value="jpeg">JPEG</option>
-            {/* Add more conversion options as needed */}
-          </select>
+          <FormControl sx={{ pb: 2 }} fullWidth>
+            <InputLabel id="conversionTypeLabel">Choose conversion type:</InputLabel>
+            <Select
+              labelId="conversionTypeLabel"
+              id="conversionType"
+              value={conversionType}
+              onChange={handleConversionTypeChange}
+            >
+              <MenuItem value="png">PNG</MenuItem>
+              <MenuItem value="jpeg">JPEG</MenuItem>
+              {/* Add more conversion options as needed */}
+            </Select>
+          </FormControl>
         </div>
-        <button type="submit">Convert Image</button>
+        <Button type="submit" variant="contained" color="primary">Convert Image</Button>
       </form>
-      <button onClick={handleDisconnect}>Disconnect</button>
-    </div>
+      <Button onClick={handleDisconnect} variant="contained">Disconnect</Button>
+    </Container>  
   );
 };
 
