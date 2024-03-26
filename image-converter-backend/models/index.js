@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
+const UserModel = require('./models/User');
+const ConversionHistoryModel = require('./models/ConversionHistory');
 const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
@@ -39,11 +41,17 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
-// Add association between User and ConversionHistory
-db.User.hasMany(db.ConversionHistory, { as: 'conversionHistories', onDelete: 'CASCADE' });
-db.ConversionHistory.belongsTo(db.User);
+// Define associations
+const User = UserModel(sequelize);
+const ConversionHistory = ConversionHistoryModel(sequelize);
 
+User.hasMany(ConversionHistory, { as: 'conversionHistories', onDelete: 'CASCADE' });
+ConversionHistory.belongsTo(User);
+
+// Export sequelize and models
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+db.User = User;
+db.ConversionHistory = ConversionHistory;
 
 module.exports = db;

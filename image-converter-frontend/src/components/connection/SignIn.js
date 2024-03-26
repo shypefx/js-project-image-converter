@@ -40,8 +40,9 @@ const SignIn = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Data Retrieve:', data.token);
         localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
+        console.log('UserId stored:', localStorage.getItem('userId'));
         console.log('Token stored:', localStorage.getItem('token'));
         window.location.href = '/home';
       } else {

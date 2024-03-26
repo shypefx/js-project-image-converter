@@ -1,3 +1,4 @@
+// models/ConversionHistory.js
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -10,19 +11,11 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    // Add any other fields as needed
-  }, {
-    timestamps: false, // Disable timestamps
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   });
-
-  // Define association with User model
-  ConversionHistory.associate = (models) => {
-    ConversionHistory.belongsTo(models.User, {
-      foreignKey: {
-        allowNull: false,
-      },
-    });
-  };
 
   return ConversionHistory;
 };

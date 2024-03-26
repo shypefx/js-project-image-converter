@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Button, Container, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
-import App from '../../App';
 import AppAppBar from '../navbar/AppAppBar';
 
 const ImageConverter = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [conversionType, setConversionType] = useState('png');
+  const [convertedImageUrl, setConvertedImageUrl] = useState('');
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -26,22 +26,19 @@ const ImageConverter = () => {
     const formData = new FormData();
     formData.append('image', selectedImage);
     formData.append('conversionType', conversionType);
+    formData.append('userId', localStorage.getItem('userId'));
 
     try {
-      const authToken = localStorage.getItem('token'); // Retrieve the token from localStorage
       const response = await fetch('http://localhost:5000/api/convert', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
         body: formData,
       });
 
       if (response.ok) {
-        // Handle successful conversion, e.g., display a success message
-        alert('Image converted successfully!');
+        // Display the converted image
+        const imageUrl = URL.createObjectURL(await response.blob());
+        setConvertedImageUrl(imageUrl);
       } else {
-        // Handle conversion failure, e.g., display an error message
         alert('Image conversion failed. Please try again.');
       }
     } catch (error) {
@@ -49,26 +46,18 @@ const ImageConverter = () => {
     }
   };
 
-  const handleDisconnect = () => {
-    // Remove authToken from localStorage
-    localStorage.removeItem('authToken');
-    // Redirect to the login page or perform any other necessary actions
-    window.location.href = '/login';
-  };
-
   return (
-    <Container maxWidth="sm" sx={{ mt: 4 }}>
+    <Container maxWidth="sm" sx={{ mt: 20}}>
       <AppAppBar />
-      <Typography sx={{ pb: 20 }}></Typography>
       <Typography variant="h4" align="center" gutterBottom>Image Converter</Typography>
       <form onSubmit={handleSubmit}>
         <div>
-          <FormControl sx={{ pb: 2 }} fullWidth>
+          <FormControl fullWidth>
             <input type="file" id="image" accept="image/*" onChange={handleImageChange} />
           </FormControl>
         </div>
         <div>
-          <FormControl sx={{ pb: 2 }} fullWidth>
+          <FormControl fullWidth>
             <InputLabel id="conversionTypeLabel">Choose conversion type:</InputLabel>
             <Select
               labelId="conversionTypeLabel"
@@ -84,7 +73,12 @@ const ImageConverter = () => {
         </div>
         <Button type="submit" variant="contained" color="primary">Convert Image</Button>
       </form>
-      <Button onClick={handleDisconnect} variant="contained">Disconnect</Button>
+      {convertedImageUrl && (
+        <div>
+          <Typography variant="h6" gutterBottom>Converted Image:</Typography>
+          <img width="60%" src={convertedImageUrl} alt="Converted" />
+        </div>
+      )}
     </Container>  
   );
 };
