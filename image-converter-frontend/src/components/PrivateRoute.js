@@ -7,10 +7,10 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
   <Route
     {...rest}
     render={props =>
-      localStorage.getItem('user') ? (
+      localStorage.getItem('userId') ? (
         <Component {...props} />
       ) : (
-        <Navigate to="/home" />
+        <Navigate to="/login" />
       )
     }
   />

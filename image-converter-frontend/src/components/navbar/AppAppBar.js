@@ -144,8 +144,7 @@ function AppAppBar({ mode, toggleColorMode }) {
                 variant="text"
                 size="small"
                 component="a"
-                href="/material-ui/getting-started/templates/sign-in/"
-                target="_blank"
+                href='/setting'                
               >
                 <PersonIcon/>
               </Button>
@@ -155,6 +154,7 @@ function AppAppBar({ mode, toggleColorMode }) {
                 variant="text"
                 color="primary"
                 aria-label="menu"
+
                 onClick={toggleDrawer(true)}
                 sx={{ minWidth: '30px', p: '4px' }}
               >

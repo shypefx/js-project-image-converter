@@ -55,6 +55,20 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+app.post('/api/user', async (req, res) => {
+  try {
+    const userId = req.body.userId; // Access userId from req.body
+    console.log("userid : ", userId);
+    const user = await User.findOne({ where: { id: userId } }); // Use userId in the query
+    res.json(user);
+    console.log("USER : ", user);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 app.post('/api/signup', async (req, res) => {
   try {
     const { firstname, name, email, password } = req.body;
@@ -147,7 +161,6 @@ app.get('/api/latest-images', async (req, res) => {
 });
 
 app.use('/converted-images', express.static(path.join(__dirname, 'converted-images')));
-
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

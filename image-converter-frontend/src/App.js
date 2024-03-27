@@ -1,12 +1,16 @@
-// App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Navigate, Routes } from 'react-router-dom';
 import Home from './components/Home';
-import Login from './components/Login';
 import SignIn from './components/connection/SignIn';
 import SignUp from './components/connection/SignUp';
-import PrivateRoute from './components/PrivateRoute';
 import ImageConverter from './components/converter/ImageConverter';
+import UserActivityCheck from './components/connection/UserActivityCheck';
+import Settings from './components/Settings';
+
+const Logout = () => {
+  localStorage.removeItem('token');
+  return <Navigate to="/login" />;
+};
 
 const App = () => {
   return (
@@ -17,9 +21,11 @@ const App = () => {
         <Route path="/home" element={<Home />} />
         <Route path="/convert" element={<ImageConverter />} />
         <Route path="/" element={<Navigate to="/home" />} />
+        <Route path="/setting" element={<Settings></Settings>}/>
+        <Route path="/logout" element={<Logout />} />
       </Routes>
     </Router>
   );
 };
 
-export default App;
+export default () => <UserActivityCheck><App /></UserActivityCheck>;
