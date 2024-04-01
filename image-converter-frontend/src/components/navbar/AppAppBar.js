@@ -12,6 +12,8 @@ import MenuItem from '@mui/material/MenuItem';
 import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import ToggleColorMode from './ToggleColorMode';
+import { Link } from "react-router-dom";
+
 
 import '@fontsource/roboto/500.css';
 import PersonIcon from '@mui/icons-material/Person';
@@ -86,7 +88,7 @@ function AppAppBar({ mode, toggleColorMode }) {
                 px: 0,
               }}
             >
-              <Typography variant="h5" color="rgba(70, 134, 230, 0.8)" sx={{ margin: 3 }} fontFamily={'Roboto'}>
+              <Typography variant="h5" color="rgba(70, 134, 230, 0.8)" sx={{ margin: 3, textDecoration: 'none' }} fontFamily={'Roboto'} component={Link} to="/home" >
                     ImageConverter
               </Typography>
               <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
@@ -95,7 +97,7 @@ function AppAppBar({ mode, toggleColorMode }) {
                   sx={{ py: '6px', px: '12px' }}
                 >
                   <Typography variant="body2" color="text.primary">
-                    Features
+                    Informations
                   </Typography>
                 </MenuItem>
                 <MenuItem
@@ -103,7 +105,7 @@ function AppAppBar({ mode, toggleColorMode }) {
                   sx={{ py: '6px', px: '12px' }}
                 >
                   <Typography variant="body2" color="text.primary">
-                    Testimonials
+                    Convert
                   </Typography>
                 </MenuItem>
                 <MenuItem
@@ -111,7 +113,7 @@ function AppAppBar({ mode, toggleColorMode }) {
                   sx={{ py: '6px', px: '12px' }}
                 >
                   <Typography variant="body2" color="text.primary">
-                    Highlights
+                    History
                   </Typography>
                 </MenuItem>
                 <MenuItem
@@ -119,16 +121,13 @@ function AppAppBar({ mode, toggleColorMode }) {
                   sx={{ py: '6px', px: '12px' }}
                 >
                   <Typography variant="body2" color="text.primary">
-                    Pricing
+                    Contact
                   </Typography>
                 </MenuItem>
                 <MenuItem
                   onClick={() => scrollToSection('faq')}
                   sx={{ py: '6px', px: '12px' }}
                 >
-                  <Typography variant="body2" color="text.primary">
-                    FAQ
-                  </Typography>
                 </MenuItem>
               </Box>
             </Box>

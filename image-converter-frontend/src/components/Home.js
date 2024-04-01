@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Typography, Grid } from '@mui/material';
 import AppAppBar from './navbar/AppAppBar';
-import ConversionHistoryGrid from './ConvertionHistoryGrid';
+//import ConversionHistoryGrid from './ConvertionHistoryGrid';
+import Carousel from './models/Carousel'
 
 const Home = () => {
   return (
@@ -17,7 +18,10 @@ const Home = () => {
             <Button variant="contained" color="primary">Convert Images</Button>
           </Link>
         </Grid>
-        <ConversionHistoryGrid></ConversionHistoryGrid>
+        <Grid margin={ 15 }item xs={12} textAlign="center">
+          <Typography variant="h4" fontFamily={'Roboto'}  gutterBottom>Latest converted images</Typography>
+          <Carousel></Carousel>
+        </Grid>
       </Grid>
     </div>
   );

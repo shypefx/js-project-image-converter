@@ -31,6 +31,7 @@ app.use(cors({
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+let userId = 0;
 
 const generateAuthToken = (user) => {
   const token = jwt.sign({ id: user.id, email: user.email }, secretKey, { expiresIn: '30d' });
@@ -92,6 +93,8 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (user && user.password === password) {
       const token = generateAuthToken(user); // Generate a new token
+      userId = user.id;
+      console.log(" userid : " + userId)
       // Include userId in the response
       res.status(200).json({ message: 'Login successful', userId: user.id, token });
     } else {
@@ -110,10 +113,31 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
     const conversionType = req.body.conversionType;
     const imageBuffer = req.file.buffer;
 
+    // Get compression and resizing options from the request body
+    const compressionLevel = req.body.compressionLevel || 80; // Default compression level
+    const resizeWidth = req.body.resizeWidth || undefined;
+    const resizeHeight = req.body.resizeHeight || undefined;
+
     // Perform image conversion using sharp
-    const convertedImageBuffer = await sharp(imageBuffer)
-      .toFormat(conversionType)
-      .toBuffer();
+    let convertedImageBuffer = sharp(imageBuffer)
+      .toFormat(conversionType);
+
+    // Apply compression option
+    if (conversionType === 'jpeg') {
+      convertedImageBuffer = convertedImageBuffer.jpeg({ quality: compressionLevel });
+    }
+
+    // Apply resizing option
+    if (resizeWidth && resizeHeight) {
+      convertedImageBuffer = convertedImageBuffer.resize({
+        width: parseInt(resizeWidth),
+        height: parseInt(resizeHeight),
+        fit: 'contain', // Choose appropriate resize fit option
+      });
+    }
+
+    // Convert the image buffer to final format
+    convertedImageBuffer = await convertedImageBuffer.toBuffer();
 
     // Save the converted image to the server's file system
     const imageName = `converted_${Date.now()}.${conversionType}`;
@@ -126,14 +150,21 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
       } else {
         try {
-          // Save conversion record to the database
-          const imageUrl = `/converted-images/${imageName}`;
-          const conversionRecord = await ConversionHistory.create({
-            imageUrl,
-            conversionType,
-            userId,
+            // Save conversion record to the database
+            const stats = fs.statSync(imagePath);
+            const imageSize = stats.size;
+            const imageUrl = `/converted-images/${imageName}`;
+            const conversionRecord = await ConversionHistory.create({
+              imageUrl,
+              conversionType,
+              userId,
           });
-          res.json({ message: 'Image converted and history recorded successfully', conversionRecord });
+                    // Send response with converted image URL and size
+          res.json({ 
+                      message: 'Image converted and history recorded successfully', 
+                      conversionRecord,
+                      imageSize // Include the size of the converted image in the response
+                    });
         } catch (error) {
           console.error('Error saving conversion record:', error);
           res.status(500).json({ error: 'Internal Server Error' });
@@ -149,6 +180,7 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
 app.get('/api/latest-images', async (req, res) => {
   try {
     const latestImages = await ConversionHistory.findAll({
+      where: { userId: userId },
       order: [['createdAt', 'DESC']],
       limit: 10,
     });
