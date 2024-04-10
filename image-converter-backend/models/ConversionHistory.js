@@ -15,6 +15,10 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    imageSize: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   });
 
   return ConversionHistory;

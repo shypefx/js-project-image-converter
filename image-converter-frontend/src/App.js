@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Navigate, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Home from './components/Home';
 import SignIn from './components/connection/SignIn';
 import SignUp from './components/connection/SignUp';
@@ -20,9 +20,10 @@ const App = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/home" element={<Home />} />
         <Route path="/convert" element={<ImageConverter />} />
-        <Route path="/" element={<Navigate to="/home" />} />
-        <Route path="/setting" element={<Settings></Settings>}/>
+        <Route path="/setting" element={<Settings />} />
         <Route path="/logout" element={<Logout />} />
+        {/* Redirect to /login if no other route matches */}
+        <Route path="/*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   );

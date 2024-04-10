@@ -1,19 +1,47 @@
 import React, { useState } from 'react';
-import { Button, Container, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
+import { LinearProgress, Button, Container, FormControl, InputLabel, MenuItem, Select, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import AppAppBar from '../navbar/AppAppBar';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+
 
 const ImageConverter = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [conversionType, setConversionType] = useState('png');
-  const [compressionLevel, setCompressionLevel] = useState(80); // Default compression level
+  const [compressionLevel, setCompressionLevel] = useState(100); // Default compression level
   const [resizeWidth, setResizeWidth] = useState(500); // Default resize width
   const [resizeHeight, setResizeHeight] = useState(500); // Default resize height
   const [convertedImageUrl, setConvertedImageUrl] = useState(null);
   const [convertedImageSize, setConvertedImageSize] = useState(null);
-
+  const [open, setOpen] = useState(false);
+  const [conversionProgress, setConversionProgress] = useState(0); // State to track conversion progress
+  
   const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    setSelectedImage(file);
+      const file = event.target.files[0];
+      if (file) {
+        setSelectedImage(file);
+  
+        // Read the file to get its size
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            // Set resize width and height to the current size of the image
+            setResizeWidth(img.width);
+            setResizeHeight(img.height);
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+  
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
   };
 
   const handleConversionTypeChange = (event) => {
@@ -30,6 +58,19 @@ const ImageConverter = () => {
 
   const handleResizeHeightChange = (event) => {
     setResizeHeight(event.target.value);
+  };
+
+  const handleConversion = async () => {
+    setConversionProgress(0);
+    const interval = setInterval(() => {
+      setConversionProgress((prevProgress) => {
+        const newProgress = prevProgress + 10;
+        if (newProgress >= 100) {
+          clearInterval(interval);
+        }
+        return newProgress;
+      });
+    }, 1000);
   };
 
   const handleSubmit = async (event) => {
@@ -59,9 +100,7 @@ const ImageConverter = () => {
         const data = await response.json();
         setConvertedImageUrl(data.convertedImageUrl);
         setConvertedImageSize(data.convertedImageSize);
-        alert('Image converted successfully!');
-        // Navigate to home page after successful conversion
-        //navigate('/home');
+        handleClickOpen();
       } else {
         // Handle conversion failure
         alert('Image conversion failed. Please try again.');
@@ -70,6 +109,8 @@ const ImageConverter = () => {
       console.error('Error during image conversion:', error);
     }
   };
+
+
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
@@ -106,9 +147,9 @@ const ImageConverter = () => {
               value={compressionLevel}
               onChange={handleCompressionLevelChange}
             >
-              <MenuItem value={80}>Low</MenuItem>
-              <MenuItem value={50}>Medium</MenuItem>
-              <MenuItem value={20}>High</MenuItem>
+              <MenuItem value={100}>Low</MenuItem>
+              <MenuItem value={80}>Medium</MenuItem>
+              <MenuItem value={50}>High</MenuItem>
             </Select>
           </FormControl>
         </div>
@@ -142,6 +183,18 @@ const ImageConverter = () => {
           <Typography variant="body2">Size: {convertedImageSize} bytes</Typography>
         </div>
       )}
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Image converted</DialogTitle>
+        <DialogContent>
+          Image has beend converted successfully.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} variant="contained">Return</Button>
+          <Button href='/home' variant="contained" color="success">Go Home</Button>
+        </DialogActions>
+      </Dialog>
+      <br></br>
+      <LinearProgress variant="determinate" value={conversionProgress} />
     </Container>  
   );
 };

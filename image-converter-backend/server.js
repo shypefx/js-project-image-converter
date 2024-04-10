@@ -23,6 +23,21 @@ const secretKey = fs.readFileSync(secretKeyPath, 'utf-8').trim();
 // -------------------------------------
 
 
+// Assuming you're using a WebSocket library like ws (Node.js) or websocket (Python)
+const WebSocket = require('ws');
+
+// Create a WebSocket server
+const wss = new WebSocket.Server({ port: 8080 });
+
+// Function to broadcast a message to all clients
+const broadcast = (data) => {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+};
+
 app.use(bodyParser.json());
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -37,6 +52,9 @@ const generateAuthToken = (user) => {
   const token = jwt.sign({ id: user.id, email: user.email }, secretKey, { expiresIn: '30d' });
   return token;
 };
+
+
+
 
 sequelize.sync({ force: false })
   .then(() => {
@@ -91,7 +109,7 @@ app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
-    if (user && user.password === password) {
+    if (user && user.password === password && user.email == email) {
       const token = generateAuthToken(user); // Generate a new token
       userId = user.id;
       console.log(" userid : " + userId)
@@ -114,7 +132,7 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
     const imageBuffer = req.file.buffer;
 
     // Get compression and resizing options from the request body
-    const compressionLevel = req.body.compressionLevel || 80; // Default compression level
+    const compressionLevel = req.body.compressionLevel || 100; // Default compression level
     const resizeWidth = req.body.resizeWidth || undefined;
     const resizeHeight = req.body.resizeHeight || undefined;
 
@@ -152,12 +170,16 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
         try {
             // Save conversion record to the database
             const stats = fs.statSync(imagePath);
-            const imageSize = stats.size;
+            // Calculate size in megabytes (MB)
+            const fileSizeInBytes = stats.size;
+            const imageSize = fileSizeInBytes / (1024 * 1024); // Convert bytes to megabytes
+            console.log("imageSize : ", imageSize)
             const imageUrl = `/converted-images/${imageName}`;
             const conversionRecord = await ConversionHistory.create({
               imageUrl,
               conversionType,
               userId,
+              imageSize,
           });
                     // Send response with converted image URL and size
           res.json({ 
@@ -191,6 +213,27 @@ app.get('/api/latest-images', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+app.delete('/api/delete-image', async (req, res) => {
+  const { id } = req.body;
+  try {
+    const imageToDelete = await ConversionHistory.findByPk(id);
+    if (!imageToDelete) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    await imageToDelete.destroy();
+    const imagePath = path.join(__dirname, req.body.imageName );
+    fs.unlinkSync(imagePath);
+    res.json({ message: 'Image deleted successfully' });
+    const message = { event: 'imageDeleted', imageId: id };
+    broadcast(message);
+  
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 app.use('/converted-images', express.static(path.join(__dirname, 'converted-images')));
 

@@ -24,20 +24,26 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    // Check if email and password are not empty
+    if (!formData.email || !formData.password) {
+      setError(true); // Set error state to true
+      return; // Exit the function early
+    }
+  
     const token = localStorage.getItem('authToken');
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     };
-
+  
     try {
       const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers,
         body: JSON.stringify(formData),
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
@@ -53,6 +59,7 @@ const SignIn = () => {
       console.error('Error during login:', error);
     }
   };
+  
 
   return (
     <ThemeProvider theme={defaultTheme}>
