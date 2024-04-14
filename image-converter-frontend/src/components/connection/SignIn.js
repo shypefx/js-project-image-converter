@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import { Button, Container, CssBaseline, TextField, Typography, Avatar, Box, FormControlLabel, Checkbox, Link, Grid } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { Button, Container, CssBaseline, TextField, Typography, Avatar, Box, FormControlLabel, Checkbox, Grid } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Alert from '@mui/material/Alert';
@@ -24,33 +24,28 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Check if email and password are not empty
-    if (!formData.email || !formData.password) {
-      setError(true); // Set error state to true
-      return; // Exit the function early
-    }
-  
-    const token = localStorage.getItem('authToken');
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  
+
     try {
       const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(formData),
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
         localStorage.setItem('userId', data.userId);
+        localStorage.setItem('userRole', data.userRole);
         console.log('UserId stored:', localStorage.getItem('userId'));
         console.log('Token stored:', localStorage.getItem('token'));
-        window.location.href = '/home';
+        if (data.userRole === 'admin') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/home';
+        }
       } else {
         setError(true); // Set error state to true
         console.error('Login failed:', response.status);
@@ -59,7 +54,6 @@ const SignIn = () => {
       console.error('Error during login:', error);
     }
   };
-  
 
   return (
     <ThemeProvider theme={defaultTheme}>

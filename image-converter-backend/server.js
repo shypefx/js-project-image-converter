@@ -23,13 +23,8 @@ const secretKey = fs.readFileSync(secretKeyPath, 'utf-8').trim();
 // -------------------------------------
 
 
-// Assuming you're using a WebSocket library like ws (Node.js) or websocket (Python)
 const WebSocket = require('ws');
-
-// Create a WebSocket server
 const wss = new WebSocket.Server({ port: 8080 });
-
-// Function to broadcast a message to all clients
 const broadcast = (data) => {
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -53,9 +48,6 @@ const generateAuthToken = (user) => {
   return token;
 };
 
-
-
-
 sequelize.sync({ force: false })
   .then(() => {
     console.log('Database synchronized');
@@ -74,13 +66,43 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+app.put('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const updatedUser = req.body;
+  console.log("body : ", updatedUser)
+  try {
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    await user.update(updatedUser);
+    res.json({ message: 'User updated successfully', user });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    await user.destroy();
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.post('/api/user', async (req, res) => {
   try {
     const userId = req.body.userId; // Access userId from req.body
-    console.log("userid : ", userId);
     const user = await User.findOne({ where: { id: userId } }); // Use userId in the query
     res.json(user);
-    console.log("USER : ", user);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -113,8 +135,8 @@ app.post('/api/login', async (req, res) => {
       const token = generateAuthToken(user); // Generate a new token
       userId = user.id;
       console.log(" userid : " + userId)
-      // Include userId in the response
-      res.status(200).json({ message: 'Login successful', userId: user.id, token });
+      console.log(" userrole : " + user.role)
+      res.status(200).json({ message: 'Login successful', userId: user.id, token, userRole: user.role });
     } else {
       res.status(401).json({ error: 'Invalid credentials' });
     }
