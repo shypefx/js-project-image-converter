@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Typography, Grid, Paper, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Modal, TextField } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
+import AppAppBar from './navbar/AppAppBar';
+import ImagesManagement from './management/ImagesManagement';
 
 
 const AdminPanel = () => {
@@ -102,13 +104,13 @@ const AdminPanel = () => {
 
     return (
     <div>
-      <Typography variant="h4" gutterBottom>
+      <AppAppBar></AppAppBar>
+      <Typography variant="h4" textAlign={'center'} gutterBottom style={{ marginTop: '100px' }}>
         Admin Panel
       </Typography>
-      <Button variant="contained" onClick={handleLogout}>Logout</Button>
-
-      <Grid container spacing={3} style={{ marginTop: '20px' }}>
-        <Grid item xs={12}>
+      {/* User Management */}
+      <Grid container spacing={2} justifyContent="center">
+        <Grid item xs={10} margin={2} textAlign={'center'}>
           <Paper elevation={3} style={{ padding: '20px' }}>
             <Typography variant="h5" gutterBottom>
               User Management
@@ -141,6 +143,10 @@ const AdminPanel = () => {
           </Paper>
         </Grid>
       </Grid>
+      
+      {/* Images Management */}
+      <ImagesManagement></ImagesManagement>
+      <Button variant="contained" onClick={handleLogout}>Logout</Button>
 
  {/* Modal for editing user */}
         <Modal open={openModal} onClose={() => setOpenModal(false)}>

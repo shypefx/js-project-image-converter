@@ -12,10 +12,12 @@ const sharp = require('sharp');
 const bodyParser = require('body-parser');
 const sequelizeConfig = require('./sequelize.config');
 const UserModel = require('./models/User');
+const ImageModel = require('./models/Image');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const sequelize = new Sequelize(sequelizeConfig.development);
 const User = UserModel(sequelize);
+const Images = ImageModel(sequelize);
 const ConversionHistory = require('./models/ConversionHistory')(sequelize);
 // ----------------------------------
 const secretKeyPath = path.join(__dirname, 'secret_key.txt');
@@ -176,23 +178,16 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
       });
     }
 
-    // Convert the image buffer to final format
     convertedImageBuffer = await convertedImageBuffer.toBuffer();
-
-    // Save the converted image to the server's file system
     const imageName = `converted_${Date.now()}.${conversionType}`;
     const imagePath = path.join(__dirname, 'converted-images', imageName);
-
-    // Use fs.writeFile with a callback function
     fs.writeFile(imagePath, convertedImageBuffer, async (err) => {
       if (err) {
         console.error('Error writing file:', err);
         res.status(500).json({ error: 'Internal Server Error' });
       } else {
         try {
-            // Save conversion record to the database
             const stats = fs.statSync(imagePath);
-            // Calculate size in megabytes (MB)
             const fileSizeInBytes = stats.size;
             const imageSize = fileSizeInBytes / (1024 * 1024); // Convert bytes to megabytes
             console.log("imageSize : ", imageSize)
@@ -203,7 +198,6 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
               userId,
               imageSize,
           });
-                    // Send response with converted image URL and size
           res.json({ 
                       message: 'Image converted and history recorded successfully', 
                       conversionRecord,
@@ -217,6 +211,36 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
     });
   } catch (error) {
     console.error('Error during image conversion and history recording:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/images', async (req, res) => {
+  try {
+    const images = await ConversionHistory.findAll();
+    res.json(images);
+    console.log('images:', images);
+  } catch (error) {
+    console.error('Error fetching images:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/api/images/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, size } = req.body;
+
+  try {
+    const image = await ConversionHistory.findByPk(id);
+    if (!image) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    image.name = name;
+    image.size = size;
+    await image.save();
+    res.json({ message: 'Image updated successfully' });
+  } catch (error) {
+    console.error('Error updating image:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
