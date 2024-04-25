@@ -7,7 +7,6 @@ const Card = ({ imageUrl, imageDate, imageSize, imageId }) => {
   const [open, setOpen] = useState(false);
 
   const handleDelete = async () => {
-    // Send a request to delete the image through the server
     try {
       const response = await fetch('http://localhost:5000/api/delete-image', {
         method: 'DELETE',
@@ -16,9 +15,7 @@ const Card = ({ imageUrl, imageDate, imageSize, imageId }) => {
         },
         body: JSON.stringify({ id: imageId, imageName: imageUrl})
       });
-
       if (response.ok) {
-        // Optionally, you can also handle success actions here (e.g., show a success message)
         console.log('Image deleted successfully');
       } else {
         console.error('Failed to delete image');
@@ -28,6 +25,21 @@ const Card = ({ imageUrl, imageDate, imageSize, imageId }) => {
     }
   };
 
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+  
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `image_${imageId}.jpg`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+    }
+  };
+  
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -58,7 +70,7 @@ const Card = ({ imageUrl, imageDate, imageSize, imageId }) => {
         </Typography>
       </CardContent>
       <CardActions>
-        <Button size="small"><CloudDownloadIcon /></Button>
+        <Button size="small" onClick={handleDownload}><CloudDownloadIcon /></Button>
         <Button size="small" onClick={handleClickOpen}><DeleteIcon color="secondary" /></Button>
       </CardActions>
       <Dialog open={open} onClose={handleClose}>

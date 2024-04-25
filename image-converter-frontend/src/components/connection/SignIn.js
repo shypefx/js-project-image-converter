@@ -39,8 +39,6 @@ const SignIn = () => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userRole', data.userRole);
-        console.log('UserId stored:', localStorage.getItem('userId'));
-        console.log('Token stored:', localStorage.getItem('token'));
         if (data.userRole === 'admin') {
           window.location.href = '/admin';
         } else {
@@ -110,17 +108,15 @@ const SignIn = () => {
             >
               Sign In
             </Button>
-            <Grid container>
-              <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
-              <Grid item>
-                <Link href="/signup" variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
-              </Grid>
+            <Grid container 
+            sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+              <Button variant='outlined' href='/signup'>
+                Create Account
+              </Button>
             </Grid>
           </Box>
           {/* Display error alert if there's an error */}

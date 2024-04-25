@@ -114,12 +114,13 @@ app.post('/api/user', async (req, res) => {
 
 app.post('/api/signup', async (req, res) => {
   try {
-    const { firstname, name, email, password } = req.body;
+    const { firstname, name, email, password, role } = req.body;
     const newUser = await User.create({
       firstname,
       name,
       email,
       password,
+      role,
     });
 
     res.status(201).json(newUser);
@@ -154,30 +155,21 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
     const userId = req.body.userId;
     const conversionType = req.body.conversionType;
     const imageBuffer = req.file.buffer;
-
-    // Get compression and resizing options from the request body
     const compressionLevel = req.body.compressionLevel || 100; // Default compression level
     const resizeWidth = req.body.resizeWidth || undefined;
     const resizeHeight = req.body.resizeHeight || undefined;
-
-    // Perform image conversion using sharp
     let convertedImageBuffer = sharp(imageBuffer)
       .toFormat(conversionType);
-
-    // Apply compression option
     if (conversionType === 'jpeg') {
-      convertedImageBuffer = convertedImageBuffer.jpeg({ quality: compressionLevel });
+      convertedImageBuffer = convertedImageBuffer.jpeg({ quality: parseInt(compressionLevel) });
     }
-
-    // Apply resizing option
     if (resizeWidth && resizeHeight) {
       convertedImageBuffer = convertedImageBuffer.resize({
         width: parseInt(resizeWidth),
         height: parseInt(resizeHeight),
-        fit: 'contain', // Choose appropriate resize fit option
+        fit: 'contain',
       });
     }
-
     convertedImageBuffer = await convertedImageBuffer.toBuffer();
     const imageName = `converted_${Date.now()}.${conversionType}`;
     const imagePath = path.join(__dirname, 'converted-images', imageName);
@@ -219,7 +211,6 @@ app.get('/api/images', async (req, res) => {
   try {
     const images = await ConversionHistory.findAll();
     res.json(images);
-    console.log('images:', images);
   } catch (error) {
     console.error('Error fetching images:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -227,20 +218,38 @@ app.get('/api/images', async (req, res) => {
 });
 
 app.put('/api/images/:id', async (req, res) => {
-  const { id } = req.params;
-  const { name, size } = req.body;
-
   try {
+    const { id } = req.params;
+    const { imageUrl, conversionType, imageSize, createdAt } = req.body;
     const image = await ConversionHistory.findByPk(id);
     if (!image) {
-      return res.status(404).json({ error: 'Image not found' });
+      return res.status(404).json({ message: 'Image not found' });
     }
-    image.name = name;
-    image.size = size;
+    image.imageUrl = imageUrl;
+    image.conversionType = conversionType;
+    image.imageSize = imageSize;
+    image.createdAt = createdAt;
     await image.save();
-    res.json({ message: 'Image updated successfully' });
+    return res.status(200).json({ message: 'Image updated successfully', image });
   } catch (error) {
     console.error('Error updating image:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.delete('/api/images/:id', async (req, res) => {
+  const { id } = req.params;
+  console.log(" id image : ", id)
+  try {
+    const image = await ConversionHistory.findByPk(id);
+    console.log(" image find ", image)
+    if (!image) {
+      return res.status(404).json({ error: 'image not found' });
+    }
+    await image.destroy();
+    res.json({ message: 'image deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting image:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

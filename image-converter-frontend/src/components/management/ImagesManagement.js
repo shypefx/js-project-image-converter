@@ -4,7 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 
 const ImagesManagement = () => {
-  const [images, setImages] = useState([]);
+  const [images, setImages] =useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [updatedImageData, setUpdatedImageData] = useState({
@@ -52,11 +52,9 @@ const ImagesManagement = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify(updatedImageData), // Send updated image data
+        body: JSON.stringify(selectedImage),
       });
-
       if (response.ok) {
-        console.log('Image updated successfully');
         setOpenModal(false);
         setSelectedImage(null);
         fetchImages();
@@ -69,16 +67,32 @@ const ImagesManagement = () => {
   };
 
   const handleDeleteImage = async (imageId) => {
-    // Implementation for deleting image...
+    try {
+      const response = await fetch(`http://localhost:5000/api/images/${imageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+  
+      if (response.ok) {
+        setImages(images.filter(image => image.id !== imageId));
+        console.log('Image deleted successfully');
+      } else {
+        console.error('Failed to delete image:', response.status);
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+    }
   };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-  };
+  
 
   const handleModalFieldChange = (e) => {
     const { name, value } = e.target;
-    setUpdatedImageData({ ...updatedImageData, [name]: value });
+    setSelectedImage(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
   };
 
   return (
@@ -87,7 +101,7 @@ const ImagesManagement = () => {
         <Grid item xs={10} margin={2} textAlign={'center'}>
           <Paper elevation={3} style={{ padding: '20px' }}>
             <Typography variant="h5" gutterBottom>
-              User Management
+              Images Management
             </Typography>
             <TableContainer>
               <Table>
@@ -124,20 +138,23 @@ const ImagesManagement = () => {
       </Grid>
 
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'white', padding: '20px' }}>
-          <Typography variant="h6" gutterBottom>
-            Edit Image
-          </Typography>
-          {selectedImage && (
-            <form>
-              <TextField name="id" label="ID" disabled value={updatedImageData.id} fullWidth margin="normal" />
-              <TextField name="name" label="Name" value={updatedImageData.name} onChange={handleModalFieldChange} fullWidth margin="normal" />
-              <TextField name="size" label="Size" value={updatedImageData.size} onChange={handleModalFieldChange} fullWidth margin="normal" />
-              <Button variant="contained" onClick={handleUpdateImage}>Update</Button>
-            </form>
-          )}
-        </div>
-      </Modal>
+  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'white', padding: '20px' }}>
+    <Typography variant="h6" gutterBottom>
+      Edit Image
+    </Typography>
+    {selectedImage && (
+      <form>
+        <TextField name="id" label="ID" value={selectedImage.id} fullWidth margin="normal" />
+        <TextField name="imageUrl" label="URL" value={selectedImage.imageUrl} onChange={handleModalFieldChange} fullWidth margin="normal" />
+        <TextField name="conversionType" label="Type" value={selectedImage.conversionType} onChange={handleModalFieldChange} fullWidth margin="normal" />
+        <TextField name="imageSize" label="Size" value={selectedImage.imageSize} onChange={handleModalFieldChange} fullWidth margin="normal" />
+        <TextField name="createdAt" label="Date" value={selectedImage.createdAt} onChange={handleModalFieldChange} fullWidth margin="normal" />
+        <Button variant="contained" onClick={handleUpdateImage}>Update</Button>
+      </form>
+    )}
+  </div>
+</Modal>
+
     </div>
   );
 };

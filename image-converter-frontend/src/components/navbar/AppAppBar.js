@@ -93,31 +93,22 @@ function AppAppBar({ mode, toggleColorMode }) {
               </Typography>
               <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
                 <MenuItem
-                  onClick={() => scrollToSection('features')}
                   sx={{ py: '6px', px: '12px' }}
-                >
-                  <Typography variant="body2" color="text.primary">
-                    Informations
-                  </Typography>
-                </MenuItem>
-                <MenuItem
-                  onClick={() => scrollToSection('testimonials')}
-                  sx={{ py: '6px', px: '12px' }}
+                  component={Link} to="/convert"
                 >
                   <Typography variant="body2" color="text.primary">
                     Convert
                   </Typography>
                 </MenuItem>
                 <MenuItem
-                  onClick={() => scrollToSection('highlights')}
                   sx={{ py: '6px', px: '12px' }}
+                  component={Link} to="/history"
                 >
                   <Typography variant="body2" color="text.primary">
                     History
                   </Typography>
                 </MenuItem>
                 <MenuItem
-                  onClick={() => scrollToSection('pricing')}
                   sx={{ py: '6px', px: '12px' }}
                 >
                   <Typography variant="body2" color="text.primary">
